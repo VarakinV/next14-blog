@@ -1,26 +1,49 @@
 import React from 'react'
 import { notFound } from 'next/navigation'
+import { getPost as getPostNotCached, getPosts } from '@/lib/posts'
+import { cache } from 'react'
+import Link from 'next/link'
 
-const titles = {
-    'first': 'Hello First!',
-    'second': 'Hello Second!',
+const getPost = cache(
+    async (slug) => await getPostNotCached(slug)
+)
+
+export async function generateStaticParams() {
+    const { posts } = await getPosts({ limit: 1000 })
+    const params = posts.map(post => ({
+        slug: post.slug
+    }))
+    return params
 }
 
-export async function generateMetadata({ params, searchParams }, parent) {
-    const description = (await parent).description ?? 'Default desc'
-    return {
-        title: titles[params.slug],
-        description
+export async function generateMetadata({ params }) {
+
+    try {
+        const { frontmatter } = await getPost(params.slug)
+        return frontmatter
+    } catch (e) {
+
     }
 }
 
-export default function BlogPage({ params }) {
+export default async function BlogPage({ params }) {
 
-    if (!['first', 'second'].includes(params.slug)) {
+
+    let post
+
+    try {
+        post = await getPost(params.slug)
+
+    } catch (e) {
         notFound()
     }
 
     return (
-        <div>BlogPage: {params.slug}</div>
+        <article className="prose dark:prose-invert">
+            <div className="flex space-x-2 mb-8">
+                {post.frontmatter.tags.map(tag => <Link key={tag} href={`/blog/?tags=${tag}`} className="dark:text-gray-400 text-gray-500">#{tag}</Link>)}
+            </div>
+            {post.content}
+        </article>
     )
 }

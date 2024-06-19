@@ -2,7 +2,7 @@ import Card from '@/components/Card'
 import React from 'react'
 
 export default async function ProjectList() {
-    const response = await fetch('http://localhost:3001/repos', { cache: 'no-store' })
+    const response = await fetch('https://api.github.com/users/VarakinV/repos', { cache: 'no-store' })
 
     const repos = await response.json()
     //throw new Error('error')
@@ -13,7 +13,7 @@ export default async function ProjectList() {
                 <li key={repo.id} className="mb-4">
                     <Card className="font-mono h-full">
                         <div className="flex justify-between items-center mb-4">
-                            <div className="font-semibold">{repo.title}</div>
+                            <div className="font-semibold">{repo.name}</div>
                             <div>{repo.stargazers_count}</div>
                         </div>
 
